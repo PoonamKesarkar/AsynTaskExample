@@ -7,9 +7,9 @@ import android.view.ViewGroup;
 
 import com.example.mediamagictest.R;
 import com.example.mediamagictest.databinding.ListItemBinding;
+import com.example.mediamagictest.imageloader.ImageLoader;
 import com.example.mediamagictest.model.ImageData;
 import com.example.mediamagictest.util.CommonMethods;
-import com.example.mediamagictest.util.ImageLoader;
 
 import java.util.ArrayList;
 
@@ -43,9 +43,13 @@ public class ImageAdpater extends RecyclerView.Adapter<ImageAdpater.ViewHolder> 
         holder.listItemBinding.txtAuthorName.setSelected(true);
         String path = imageUrl + list.get(position).getId() + ".jpg";
         holder.listItemBinding.imageView.setImageDrawable(null);
+        holder.listItemBinding.imgProgressBar.setVisibility(View.GONE);
+
         if (new CommonMethods().isInternetConnection(context)) {
-            ImageLoader loader = new ImageLoader(context, holder.listItemBinding.imageView, holder.listItemBinding.imgProgressBar);
-            loader.execute(path);
+          /*  ImageLoader loader = new ImageLoader(context, holder.listItemBinding.imageView, holder.listItemBinding.imgProgressBar);
+            loader.execute(path);*/
+            ImageLoader imageLoader=new ImageLoader(context);
+            imageLoader.DisplayImage(path, holder.listItemBinding.imageView,holder.listItemBinding.imgProgressBar);
         } else {
             holder.listItemBinding.imgProgressBar.setVisibility(View.GONE);
             holder.listItemBinding.imageView.setImageResource(R.drawable.logo);

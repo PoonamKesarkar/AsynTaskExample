@@ -1,6 +1,10 @@
 package com.example.mediamagictest.activity;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +21,7 @@ import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -29,7 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<ImageData> list;
     private RecyclerView recyclerView;
     private ImageViewModel imageViewModel;
-
+    private String READ_EXTERNAL_STORAGE_PERMISSION = android.Manifest.permission.READ_EXTERNAL_STORAGE;
+    private String WRITE_EXTERNAL_STORAGE_PERMISSION = android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+    public final int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +56,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        init();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.v("Permission","on take permission");
+            checkMultiplePermissions(REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS, MainActivity.this);
+        } else {
+            init();
+        }
+
     }
 
     private void init() {
@@ -65,7 +78,25 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Please check your internet connection.", Toast.LENGTH_SHORT).show();
         }
     }
+    private void checkMultiplePermissions(int permissionCode, Context context) {
+        String[] PERMISSIONS = {READ_EXTERNAL_STORAGE_PERMISSION, WRITE_EXTERNAL_STORAGE_PERMISSION};
+        if (!hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions((Activity) context, PERMISSIONS, permissionCode);
+        } else {
+            init();
+        }
+    }
 
+    private boolean hasPermissions(Context context, String[] permissions) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
     private void getImageData() {
         imageViewModel.getImageList(MainActivity.this).observe(this, new Observer<ArrayList<ImageData>>() {
             @Override
@@ -81,6 +112,22 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
     }
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    init();
+                } else {
+                    Toast.makeText(MainActivity.this, "Permission Denied", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
 }
 
 
