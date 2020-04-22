@@ -42,11 +42,12 @@ public class ImageAdpater extends RecyclerView.Adapter<ImageAdpater.ViewHolder> 
         holder.listItemBinding.setImagedata(list.get(position));
         holder.listItemBinding.txtAuthorName.setSelected(true);
         String path = imageUrl + list.get(position).getId() + ".jpg";
-        holder.listItemBinding.imgProgressBar.setVisibility(View.VISIBLE);
+        holder.listItemBinding.imageView.setImageDrawable(null);
         if (new CommonMethods().isInternetConnection(context)) {
             ImageLoader loader = new ImageLoader(context, holder.listItemBinding.imageView, holder.listItemBinding.imgProgressBar);
             loader.execute(path);
         } else {
+            holder.listItemBinding.imgProgressBar.setVisibility(View.GONE);
             holder.listItemBinding.imageView.setImageResource(R.drawable.logo);
         }
     }

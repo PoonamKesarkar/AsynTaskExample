@@ -1,6 +1,8 @@
 package com.example.mediamagictest.activity;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -13,6 +15,7 @@ import com.example.mediamagictest.util.CommonMethods;
 
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
@@ -45,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
+
         init();
     }
 
@@ -71,6 +75,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
 }
 
 
