@@ -1,17 +1,9 @@
-package com.example.mediamagictest.util;
+package com.example.mediamagictest.model;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
-
-import com.example.mediamagictest.R;
-import com.example.mediamagictest.adapter.ImageAdpater;
-import com.example.mediamagictest.databinding.ActivityMainBinding;
-import com.example.mediamagictest.model.ImageData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,7 +11,6 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -27,65 +18,33 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.databinding.DataBindingUtil;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
 import static com.example.mediamagictest.util.Constant.imageListUrl;
 
-public class MainActivity extends AppCompatActivity {
-    private ActivityMainBinding activityMainBinding;
-    private ImageAdpater adapter;
-    private ArrayList<ImageData> list;
-    private RecyclerView recyclerView;
+public class ImageViewModel extends ViewModel {
+    MutableLiveData<ArrayList<ImageData>> imageList;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // setContentView(R.layout.activity_main);
-        activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        setSupportActionBar(activityMainBinding.toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Image List");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeButtonEnabled(true);
-        }
-        recyclerView = activityMainBinding.recyclerListView;
-        activityMainBinding.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
-        init();
+    public LiveData<ArrayList<ImageData>> getImageList(Context context) {
+        imageList = new MutableLiveData<>();
+        getImageListApi(context);
+        return imageList;
     }
 
-    private void init() {
-        list = new ArrayList<>();
-        adapter = new ImageAdpater(this, list);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        recyclerView.setAdapter(adapter);
-        if (new CommonMethods().isInternetConnection(MainActivity.this)) {
-            getImageData();
-        } else {
-            Toast.makeText(MainActivity.this, "Please check your internet connection.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void getImageData() {
-        HttpRequest asyncTask = new HttpRequest(MainActivity.this);
+    private void getImageListApi(Context context) {
+        HttpRequest asyncTask = new HttpRequest(context);
         asyncTask.execute();
     }
 
-    public class HttpRequest extends AsyncTask<String, Integer, String> {
+    class HttpRequest extends AsyncTask<String, Integer, String> {
         ProgressDialog progressDialog;
+        ArrayList<ImageData> list = new ArrayList<>();
         private Context context;
 
         HttpRequest(Context context) {
             this.context = context;
-
         }
 
         @Override
@@ -98,11 +57,11 @@ public class MainActivity extends AppCompatActivity {
             try {
                 url = new URL(imageListUrl);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
-                // setting the  Request Method Type
+                // setting the Request Method Type
                 httpURLConnection.setRequestMethod("GET");
 
-                Log.d("TAG", "MyHttpRequestTask doInBackground : " + httpURLConnection.getResponseCode());
-                Log.d("TAG", "MyHttpRequestTask doInBackground : " + httpURLConnection.getResponseMessage());
+                Log.d("TAG", "HttpRequestTask doInBackground : " + httpURLConnection.getResponseCode());
+                Log.d("TAG", "HttpRequestTask doInBackground : " + httpURLConnection.getResponseMessage());
 
                 if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
@@ -112,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                     BufferedReader reader = new BufferedReader(streamReader);
                     StringBuilder stringBuilder = new StringBuilder();
                     //Check if the line we are reading is not null
-                    while((inputLine = reader.readLine()) != null){
+                    while ((inputLine = reader.readLine()) != null) {
                         stringBuilder.append(inputLine);
                     }
                     //Close our InputStream and Buffered reader
@@ -132,8 +91,6 @@ public class MainActivity extends AppCompatActivity {
                     httpURLConnection.disconnect();
                 }
             }
-
-
             return null;
         }
 
@@ -151,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                         model.setAuthorName(object.getString("author"));
                         list.add(model);
                     }
-                    adapter.notifyDataSetChanged();
+                    imageList.setValue(list);
                     progressDialog.dismiss();
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -160,8 +117,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-
-
         @Override
         protected void onPreExecute() {
             progressDialog = new ProgressDialog(context);
@@ -169,9 +124,7 @@ public class MainActivity extends AppCompatActivity {
             progressDialog.setCancelable(false);
             progressDialog.show();
         }
-
     }
-
 }
 
 

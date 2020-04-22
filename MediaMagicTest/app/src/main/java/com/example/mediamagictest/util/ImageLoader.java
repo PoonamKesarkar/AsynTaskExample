@@ -5,12 +5,14 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.example.mediamagictest.R;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -82,12 +84,13 @@ public class ImageLoader extends AsyncTask<String, Void, Bitmap> {
 
         try {
             URL url = new URL(imageuri);
-            //  Log.d("bucky","bitmap" + imageuri);
             connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.connect();
             InputStream is = connection.getInputStream();
             Bitmap mybitmap = BitmapFactory.decodeStream(is);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            mybitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
             return mybitmap;
 
         } catch (MalformedURLException e) {
